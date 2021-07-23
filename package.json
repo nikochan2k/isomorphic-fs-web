@@ -45,6 +45,8 @@
     "preset": "ts-jest"
   },
   "devDependencies": {
+    "@types/cordova": "^0.0.34",
+    "@types/cordova-plugin-file": "^4.3.2",
     "@types/jest": "^26.0.24",
     "@types/node": "^16.4.1",
     "jest": "^27.0.6",
@@ -54,7 +56,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "isomorphic-fs": "^0.0.2",
+    "isomorphic-fs": "^0.0.12",
     "tslib": "^2.3.0"
   },
   "author": "Yoshihiro Seki",
