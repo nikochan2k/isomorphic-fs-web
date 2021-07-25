@@ -57,9 +57,8 @@ export function convertError(repository: string, path: string, err: FileError) {
 }
 
 export class WebFileSystem extends AbstractFileSystem {
+  private fs?: FileSystem;
   private rootDir: string;
-
-  public fs: FileSystem;
 
   constructor(
     rootDir: string,
@@ -68,6 +67,21 @@ export class WebFileSystem extends AbstractFileSystem {
   ) {
     super(util.normalizePath(rootDir), options);
     this.rootDir = this.repository;
+  }
+
+  public async _getFS() {
+    if (this.fs) {
+      return this.fs;
+    }
+    this.fs = await new Promise<FileSystem>((resolve, reject) => {
+      window.requestFileSystem(
+        window.PERSISTENT,
+        this.size,
+        (fs) => resolve(fs),
+        (err) => reject(err)
+      );
+    });
+    return this.fs;
   }
 
   public _head(path: string, _options: HeadOptions): Promise<Stats> {
@@ -113,7 +127,7 @@ export class WebFileSystem extends AbstractFileSystem {
   }
 
   private async getEntry(path: string) {
-    const fs = await this.getFS();
+    const fs = await this._getFS();
     const fullPath = util.joinPaths(this.rootDir, path);
     return new Promise<FileEntry | DirectoryEntry>((resolve, reject) => {
       let rejected: FileError;
@@ -124,20 +138,5 @@ export class WebFileSystem extends AbstractFileSystem {
       fs.root.getFile(fullPath, { create: false }, resolve, handle);
       fs.root.getDirectory(fullPath, { create: false }, resolve, handle);
     });
-  }
-
-  private async getFS() {
-    if (this.fs) {
-      return this.fs;
-    }
-    this.fs = await new Promise<FileSystem>((resolve, reject) => {
-      window.requestFileSystem(
-        window.PERSISTENT,
-        this.size,
-        (fs) => resolve(fs),
-        (err) => reject(err)
-      );
-    });
-    return this.fs;
   }
 }

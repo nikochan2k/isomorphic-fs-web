@@ -7,9 +7,10 @@ export class WebDirectory extends AbstractDirectory {
   }
 
   public _list(): Promise<string[]> {
-    return new Promise<string[]>((resolve, reject) => {
+    return new Promise<string[]>(async (resolve, reject) => {
       const fullPath = util.joinPaths(this.fs.repository, this.path);
-      this.wfs.fs.root.getDirectory(
+      const fs = await this.wfs._getFS();
+      fs.root.getDirectory(
         fullPath,
         { create: true },
         (directory) => {
@@ -32,9 +33,10 @@ export class WebDirectory extends AbstractDirectory {
   }
 
   public _mkcol(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       const fullPath = util.joinPaths(this.fs.repository, this.path);
-      this.wfs.fs.root.getDirectory(
+      const fs = await this.wfs._getFS();
+      fs.root.getDirectory(
         fullPath,
         { create: true },
         () => resolve,
@@ -52,9 +54,10 @@ export class WebDirectory extends AbstractDirectory {
   }
 
   private _rd(recursive: boolean): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       const fullPath = util.joinPaths(this.fs.repository, this.path);
-      this.wfs.fs.root.getDirectory(
+      const fs = await this.wfs._getFS();
+      fs.root.getDirectory(
         fullPath,
         { create: false },
         (entry) => {

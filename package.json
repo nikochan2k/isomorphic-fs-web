@@ -56,7 +56,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "isomorphic-fs": "^0.0.12",
+    "isomorphic-fs": "^0.0.18",
     "tslib": "^2.3.0"
   },
   "author": "Yoshihiro Seki",
