@@ -3,53 +3,28 @@ import {
   AbstractReadStream,
   AbstractWriteStream,
   OpenOptions,
+  OpenWriteOptions,
   util,
 } from "isomorphic-fs";
 import { convertError, WebFileSystem } from "./WebFileSystem";
+import { WebReadStream } from "./WebReadStream";
+import { WebWriteStream } from "./WebWriteStream";
 
 export class WebFile extends AbstractFile {
-  private file?: File;
-
   constructor(public wfs: WebFileSystem, path: string) {
     super(wfs, path);
   }
 
-  public _close() {
-    this.file = undefined;
-  }
-
-  public _createReadStream(options: OpenOptions): Promise<AbstractReadStream> {
-    throw new Error("Method not implemented.");
-  }
-
-  public _createWriteStream(
+  public async _createReadStream(
     options: OpenOptions
-  ): Promise<AbstractWriteStream> {
-    throw new Error("Method not implemented.");
+  ): Promise<AbstractReadStream> {
+    return new WebReadStream(this, options);
   }
 
-  public _open(): Promise<File> {
-    return new Promise<File>(async (resolve, reject) => {
-      if (this.file) {
-        resolve(this.file);
-        return;
-      }
-      const handle = (err: FileError) =>
-        reject(convertError(this.fs.repository, this.path, err));
-      const fullPath = util.joinPaths(this.fs.repository, this.path);
-      const fs = await this.wfs._getFS();
-      fs.root.getFile(
-        fullPath,
-        { create: false },
-        (entry) => {
-          entry.file((file) => {
-            this.file = file;
-            resolve(this.file);
-          }, handle);
-        },
-        handle
-      );
-    });
+  public async _createWriteStream(
+    options: OpenWriteOptions
+  ): Promise<AbstractWriteStream> {
+    return new WebWriteStream(this, options);
   }
 
   public _rm(): Promise<void> {
