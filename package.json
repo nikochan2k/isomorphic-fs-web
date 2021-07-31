@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/jest": "^26.0.24",
-    "@types/node": "^16.4.3",
+    "@types/node": "^16.4.8",
     "expect": "^27.0.6",
     "jest": "^27.0.6",
     "jest-mock": "^27.0.6",
@@ -42,7 +42,7 @@
     "webpack": "^5.47.1"
   },
   "dependencies": {
-    "isomorphic-fs": "^0.0.20",
+    "isomorphic-fs": "^0.0.21",
     "tslib": "^2.3.0"
   },
   "author": "Yoshihiro Seki",
