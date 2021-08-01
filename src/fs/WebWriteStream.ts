@@ -33,7 +33,8 @@ export class WebWriteStream extends AbstractWriteStream {
   }
 
   protected async _seek(start: number): Promise<void> {
-    await this._process((writer) => writer.seek(start));
+    const writer = await this._getWriter();
+    writer.seek(start);
   }
 
   private async _getWriter(): Promise<FileWriter> {

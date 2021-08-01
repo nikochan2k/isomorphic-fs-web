@@ -60,14 +60,13 @@ describe("basic", () => {
     let text = toString(buffer);
     expect(text).toBe("大谷");
 
-    /*
     await rs.seek(6, SeekOrigin.Begin);
     buffer = (await rs.read()) as ArrayBuffer;
     text = toString(buffer);
     expect(text).toBe("翔平");
 
     await ws.seek(0, SeekOrigin.End);
-    ws.write(toArrayBuffer("ホームラン"));
+    await ws.write(toArrayBuffer("ホームラン"));
 
     await rs.seek(0, SeekOrigin.Begin);
     buffer = (await rs.read()) as ArrayBuffer;
@@ -80,7 +79,6 @@ describe("basic", () => {
     buffer = (await rs.read()) as ArrayBuffer;
     text = toString(buffer);
     expect(text).toBe("ホームラン");
-    */
 
     await ws.close();
     await rs.close();
