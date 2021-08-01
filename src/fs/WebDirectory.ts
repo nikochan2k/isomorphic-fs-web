@@ -39,7 +39,7 @@ export class WebDirectory extends AbstractDirectory {
       fs.root.getDirectory(
         fullPath,
         { create: true },
-        () => resolve,
+        () => resolve(),
         (err) => reject(convertError(this.fs.repository, this.path, err))
       );
     });

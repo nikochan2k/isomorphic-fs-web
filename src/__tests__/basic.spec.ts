@@ -84,7 +84,6 @@ describe("basic", () => {
     await rs.close();
   });
 
-  /*
   it("mkdir test", async () => {
     const dir = await fs.getDirectory("/");
     let dirs = await dir.readdir();
@@ -111,6 +110,7 @@ describe("basic", () => {
     expect(0 <= dirs.indexOf("/folder")).toBe(true);
   });
 
+  /*
   it("create file in dir", async () => {
     const file = await fs.getFile("/folder/sample.txt");
     try {
