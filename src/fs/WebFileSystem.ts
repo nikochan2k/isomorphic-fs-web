@@ -56,6 +56,8 @@ export function convertError(repository: string, path: string, err: FileError) {
   }
 }
 
+const requestFileSystem =
+  window.requestFileSystem || (window as any).webkitRequestFileSystem;
 export class WebFileSystem extends AbstractFileSystem {
   private fs?: FileSystem;
   private rootDir: string;
@@ -74,7 +76,7 @@ export class WebFileSystem extends AbstractFileSystem {
       return this.fs;
     }
     this.fs = await new Promise<FileSystem>((resolve, reject) => {
-      window.requestFileSystem(
+      requestFileSystem(
         window.PERSISTENT,
         this.size,
         (fs) => resolve(fs),
