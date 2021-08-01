@@ -6,6 +6,7 @@ import {
   OpenWriteOptions,
   util,
 } from "isomorphic-fs";
+import { getName } from "isomorphic-fs/lib/util";
 import { convertError, WebFileSystem } from "./WebFileSystem";
 import { WebReadStream } from "./WebReadStream";
 import { WebWriteStream } from "./WebWriteStream";
@@ -24,13 +25,26 @@ export class WebFile extends AbstractFile {
   public async _createWriteStream(
     options: OpenWriteOptions
   ): Promise<AbstractWriteStream> {
+    const fs = await this.wfs._getFS();
+    await new Promise<void>((resolve, reject) => {
+      const fullPath = util.joinPaths(this.fs.repository, this.path);
+      fs.root.getFile(
+        fullPath,
+        { create: options.create },
+        () => resolve(),
+        (err: any) => {
+          console.log(err.name);
+          reject(convertError(this.fs.repository, this.path, err));
+        }
+      );
+    });
     return new WebWriteStream(this, options);
   }
 
-  public _rm(): Promise<void> {
-    return new Promise<void>(async (resolve, reject) => {
+  public async _rm(): Promise<void> {
+    const fs = await this.wfs._getFS();
+    return new Promise<void>((resolve, reject) => {
       const fullPath = util.joinPaths(this.fs.repository, this.path);
-      const fs = await this.wfs._getFS();
       fs.root.getFile(
         fullPath,
         { create: false },

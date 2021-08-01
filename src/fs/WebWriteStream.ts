@@ -22,7 +22,7 @@ export class WebWriteStream extends AbstractWriteStream {
   }
 
   public async _truncate(size: number): Promise<void> {
-    this._process(
+    await this._process(
       (writer) => writer.truncate(size),
       () => {
         this.position = 0;
@@ -31,8 +31,8 @@ export class WebWriteStream extends AbstractWriteStream {
   }
 
   public async _write(buffer: ArrayBuffer | Uint8Array): Promise<void> {
-    this._process(
-      async (writer) => {
+    await this._process(
+      (writer) => {
         const ab = toArrayBuffer(buffer);
         const blob = new Blob([ab]);
         writer.write(blob);
@@ -44,7 +44,7 @@ export class WebWriteStream extends AbstractWriteStream {
   }
 
   protected async _seek(start: number): Promise<void> {
-    this._process(
+    await this._process(
       (writer) => writer.seek(start),
       () => {
         this.position = start;

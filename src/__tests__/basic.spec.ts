@@ -6,26 +6,19 @@ const { toArrayBuffer, toString } = util;
 const fs = new WebFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
 
 describe("basic", () => {
-  /*
   it("rootdir", async () => {
     const dir = await fs.getDirectory("/");
     const paths = await dir.readdir();
     expect(paths.length).toBe(0);
   });
-  */
 
   it("add empty file", async () => {
     const file = await fs.getFile("/empty.txt");
     expectAsync(file.stat()).toBeRejected();
-    console.log(3);
     const buffer = toArrayBuffer("");
-    console.log(4);
     const ws = await file.createWriteStream();
-    console.log(5);
     await ws.write(buffer);
-    console.log(6);
     await ws.close();
-    console.log(7);
     const stats = await file.stat();
     expect(stats.size).toBe(0);
   });

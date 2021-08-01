@@ -1,10 +1,27 @@
 const path = require("path");
+const chromeDataDir = path.resolve(__dirname, ".chrome-karma");
+
+const rimraf = require("rimraf");
+rimraf(chromeDataDir, () => {});
 
 module.exports = function (config) {
   config.set({
     plugins: ["karma-chrome-launcher", "karma-jasmine"],
 
-    browsers: ["ChromeHeadless"],
+    browsers: ["chrome_without_security"],
+    customLaunchers: {
+      chrome_without_security: {
+        base: "ChromeHeadless",
+        flags: [
+          "--no-sandbox",
+          "--disable-gpu",
+          "--disable-web-security",
+          "--disable-site-isolation-trials",
+          "--allow-file-access-from-files",
+        ],
+        chromeDataDir,
+      },
+    },
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: "",
