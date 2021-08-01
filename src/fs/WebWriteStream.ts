@@ -10,53 +10,33 @@ import { WebFile } from "./WebFile";
 import { convertError } from "./WebFileSystem";
 
 export class WebWriteStream extends AbstractWriteStream {
-  private writer?: FileWriter;
+  private opened = false;
 
   constructor(private wf: WebFile, options: OpenWriteOptions) {
     super(wf, options);
   }
 
   public async _close(): Promise<void> {
-    this.writer = undefined;
-    this.position = 0;
+    this.opened = false;
   }
 
   public async _truncate(size: number): Promise<void> {
-    await this._process(
-      (writer) => writer.truncate(size),
-      () => {
-        this.position = 0;
-      }
-    );
+    await this._process((writer) => writer.truncate(size));
   }
 
   public async _write(buffer: ArrayBuffer | Uint8Array): Promise<void> {
-    await this._process(
-      (writer) => {
-        const ab = toArrayBuffer(buffer);
-        const blob = new Blob([ab]);
-        writer.write(blob);
-      },
-      () => {
-        this.position += buffer.byteLength;
-      }
-    );
+    await this._process((writer) => {
+      const ab = toArrayBuffer(buffer);
+      const blob = new Blob([ab]);
+      writer.write(blob);
+    });
   }
 
   protected async _seek(start: number): Promise<void> {
-    await this._process(
-      (writer) => writer.seek(start),
-      () => {
-        this.position = start;
-      }
-    );
+    await this._process((writer) => writer.seek(start));
   }
 
   private async _getWriter(): Promise<FileWriter> {
-    if (this.writer != null) {
-      return this.writer;
-    }
-
     const wf = this.wf;
     const repository = wf.fs.repository;
     const path = wf.path;
@@ -70,31 +50,37 @@ export class WebWriteStream extends AbstractWriteStream {
         { create: true },
         (entry) =>
           entry.createWriter(async (writer) => {
-            if (this.options.append) {
-              const stats = await wf.head();
-              const size = stats.size as number;
-              writer.seek(size);
-              this.position = size;
+            if (this.opened) {
+              writer.seek(this.position);
               resolve(writer);
             } else {
-              const removeEvents = () => {
-                writer.onabort = undefined as any;
-                writer.onerror = undefined as any;
-                writer.onwriteend = undefined as any;
-              };
-              writer.onabort = (ev) => {
-                removeEvents();
-                reject(new AbortError(repository, path, ev));
-              };
-              writer.onerror = (ev) => {
-                removeEvents();
-                reject(new NoModificationAllowedError(repository, path, ev));
-              };
-              writer.onwriteend = () => {
-                removeEvents();
+              this.opened = true;
+              if (this.options.append) {
+                const stats = await wf.head();
+                const size = stats.size as number;
+                writer.seek(size);
+                this.position = size;
                 resolve(writer);
-              };
-              writer.truncate(0);
+              } else {
+                const removeEvents = () => {
+                  writer.onabort = undefined as any;
+                  writer.onerror = undefined as any;
+                  writer.onwriteend = undefined as any;
+                };
+                writer.onabort = (ev) => {
+                  removeEvents();
+                  reject(new AbortError(repository, path, ev));
+                };
+                writer.onerror = (ev) => {
+                  removeEvents();
+                  reject(new NoModificationAllowedError(repository, path, ev));
+                };
+                writer.onwriteend = () => {
+                  removeEvents();
+                  resolve(writer);
+                };
+                writer.truncate(0);
+              }
             }
           }, handle),
         handle
@@ -102,10 +88,7 @@ export class WebWriteStream extends AbstractWriteStream {
     });
   }
 
-  private async _process(
-    handle: (writer: FileWriter) => void,
-    onWriteEnd: () => void
-  ) {
+  private async _process(handle: (writer: FileWriter) => void) {
     const writer = await this._getWriter();
     return new Promise<void>((resolve, reject) => {
       const wf = this.wf;
@@ -115,7 +98,6 @@ export class WebWriteStream extends AbstractWriteStream {
       writer.onerror = (ev) =>
         reject(new NoModificationAllowedError(repository, path, ev));
       writer.onwriteend = () => {
-        onWriteEnd();
         resolve();
       };
       handle(writer);

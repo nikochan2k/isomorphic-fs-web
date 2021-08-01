@@ -4,8 +4,6 @@ import { WebFile } from "./WebFile";
 import { convertError } from "./WebFileSystem";
 
 export class WebReadStream extends AbstractReadStream {
-  private file?: File;
-
   constructor(private wf: WebFile, options: OpenOptions) {
     super(wf, options);
   }
@@ -22,7 +20,6 @@ export class WebReadStream extends AbstractReadStream {
     } else {
       blob = file.slice(this.position, this.position + size);
     }
-    this.position += blob.size;
     const buffer = await toArrayBuffer(blob);
     return buffer;
   }
@@ -31,35 +28,24 @@ export class WebReadStream extends AbstractReadStream {
     this.position = start;
   }
 
-  private _dispose() {
-    if (!this.file) {
-      return;
-    }
+  private _dispose() {}
 
-    this.file = undefined;
-  }
-
-  private _open(): Promise<File> {
+  private async _open(): Promise<File> {
+    const wf = this.wf;
+    const wfs = wf.wfs;
+    const fs = await wfs._getFS();
     return new Promise<File>(async (resolve, reject) => {
-      if (this.file) {
-        resolve(this.file);
-        return;
-      }
-      const wf = this.wf;
-      const wfs = wf.wfs;
       const repository = wfs.repository;
       const path = wf.path;
       const handle = (err: FileError) =>
         reject(convertError(repository, path, err));
       const fullPath = util.joinPaths(repository, path);
-      const fs = await wfs._getFS();
       fs.root.getFile(
         fullPath,
         { create: false },
         (entry) => {
           entry.file((file) => {
-            this.file = file;
-            resolve(this.file);
+            resolve(file);
           }, handle);
         },
         handle
