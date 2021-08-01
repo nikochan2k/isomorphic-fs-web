@@ -26,18 +26,17 @@ export class WebFile extends AbstractFile {
     options: OpenWriteOptions
   ): Promise<AbstractWriteStream> {
     const fs = await this.wfs._getFS();
-    await new Promise<void>((resolve, reject) => {
-      const fullPath = util.joinPaths(this.fs.repository, this.path);
-      fs.root.getFile(
-        fullPath,
-        { create: options.create },
-        () => resolve(),
-        (err: any) => {
-          console.log(err.name);
-          reject(convertError(this.fs.repository, this.path, err));
-        }
-      );
-    });
+    if (options.create) {
+      await new Promise<void>((resolve, reject) => {
+        const fullPath = util.joinPaths(this.fs.repository, this.path);
+        fs.root.getFile(
+          fullPath,
+          { create: true },
+          () => resolve(),
+          (err: any) => reject(convertError(this.fs.repository, this.path, err))
+        );
+      });
+    }
     return new WebWriteStream(this, options);
   }
 
