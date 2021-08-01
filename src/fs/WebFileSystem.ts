@@ -25,31 +25,47 @@ import {
 import { WebDirectory } from "./WebDirectory";
 import { WebFile } from "./WebFile";
 
-export function convertError(repository: string, path: string, err: FileError) {
+export function convertError(repository: string, path: string, err: any) {
+  let code = 0;
+  if (err) {
+    const e = err as any;
+    if (e.code) {
+      code = e.code;
+    }
+    let name = "";
+    if (e.name) {
+      name = e.name;
+    }
+    let message = "";
+    if (e.message) {
+      message = e.message;
+    }
+    console.debug(repository, path, name, message);
+  }
   switch (err.code) {
-    case FileError.NOT_FOUND_ERR:
+    case 1: // NOT_FOUND_ERR
       throw new NotFoundError(repository, path, err);
-    case FileError.SECURITY_ERR:
+    case 2: // SECURITY_ERR
       throw new SecurityError(repository, path, err);
-    case FileError.ABORT_ERR:
+    case 3: // ABORT_ERR:
       throw new AbortError(repository, path, err);
-    case FileError.NOT_READABLE_ERR:
+    case 4: // NOT_READABLE_ERR:
       throw new NotReadableError(repository, path, err);
-    case FileError.ENCODING_ERR:
+    case 5: // ENCODING_ERR:
       throw new EncodingError(repository, path, err);
-    case FileError.NO_MODIFICATION_ALLOWED_ERR:
+    case 6: // NO_MODIFICATION_ALLOWED_ERR:
       throw new NoModificationAllowedError(repository, path, err);
-    case FileError.INVALID_STATE_ERR:
+    case 7: // INVALID_STATE_ERR:
       throw new InvalidStateError(repository, path, err);
-    case FileError.SYNTAX_ERR:
+    case 8: // SYNTAX_ERR:
       throw new SyntaxError(repository, path, err);
-    case FileError.INVALID_MODIFICATION_ERR:
+    case 9: // INVALID_MODIFICATION_ERR:
       throw new InvalidStateError(repository, path, err);
-    case FileError.QUOTA_EXCEEDED_ERR:
+    case 10: // QUOTA_EXCEEDED_ERR:
       throw new QuotaExceededError(repository, path, err);
-    case FileError.TYPE_MISMATCH_ERR:
+    case 11: // TYPE_MISMATCH_ERR:
       throw new TypeMismatchError(repository, path, err);
-    case FileError.PATH_EXISTS_ERR:
+    case 12: // PATH_EXISTS_ERR:
       throw new PathExistsError(repository, path, err);
     default:
       throw new NotSupportedError(repository, path, err);
@@ -75,28 +91,52 @@ export class WebFileSystem extends AbstractFileSystem {
     if (this.fs) {
       return this.fs;
     }
+    if ((window as any).webkitStorageInfo) {
+      await new Promise<void>((resolve, reject) => {
+        const webkitStorageInfo = (window as any).webkitStorageInfo;
+        webkitStorageInfo.requestQuota(
+          window.PERSISTENT,
+          this.size,
+          () => resolve(),
+          (e: any) => reject(convertError(this.repository, "", e))
+        );
+      });
+    } else if ((navigator as any).webkitPersistentStorage) {
+      await new Promise<void>((resolve, reject) => {
+        const webkitPersistentStorage = (navigator as any)
+          .webkitPersistentStorage;
+        webkitPersistentStorage.requestQuota(
+          this.size,
+          () => resolve(),
+          (e: any) => reject(convertError(this.repository, "", e))
+        );
+      });
+    }
     this.fs = await new Promise<FileSystem>((resolve, reject) => {
       requestFileSystem(
         window.PERSISTENT,
         this.size,
         (fs) => resolve(fs),
-        (err) => reject(err)
+        (err) => reject(convertError(this.repository, "", err))
       );
     });
     return this.fs;
   }
 
   public _head(path: string, _options: HeadOptions): Promise<Stats> {
-    return new Promise<Stats>(async (resolve, reject) => {
-      const entry = await this.getEntry(path);
-      entry.getMetadata(
-        (metadata) =>
-          resolve({
-            modified: metadata.modificationTime.getTime(),
-            size: metadata.size,
-          }),
-        (err) => reject(convertError(this.repository, path, err))
-      );
+    return new Promise<Stats>((resolve, reject) => {
+      this.getEntry(path)
+        .then((entry) => {
+          entry.getMetadata(
+            (metadata) =>
+              resolve({
+                modified: metadata.modificationTime.getTime(),
+                size: metadata.size,
+              }),
+            (err) => reject(convertError(this.repository, path, err))
+          );
+        })
+        .catch((err) => reject(convertError(this.repository, path, err)));
     });
   }
 

@@ -1,14 +1,11 @@
+const path = require("path");
+
 module.exports = function (config) {
   config.set({
     plugins: ["karma-chrome-launcher", "karma-jasmine"],
 
     browsers: ["ChromeHeadless"],
-    customLaunchers: {
-      ChromeHeadlessCI: {
-        base: "ChromeHeadless",
-        flags: ["--no-sandbox"],
-      },
-    },
+
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: "",
 
@@ -20,6 +17,6 @@ module.exports = function (config) {
     // Here I'm including all of the the Jest tests which are all under the __tests__ directory.
     // You may need to tweak this patter to find your test files/
     files: [{ pattern: "dist/*.js", watched: false }],
-    singleRun: true,
+    // singleRun: true,
   });
 };
