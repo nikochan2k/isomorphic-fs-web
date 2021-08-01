@@ -23,7 +23,6 @@ describe("basic", () => {
     expect(stats.size).toBe(0);
   });
 
-  /*
   it("add text file", async () => {
     const file = await fs.getFile("/test.txt");
     try {
@@ -40,6 +39,7 @@ describe("basic", () => {
     expect(stats.size).toBe(4);
   });
 
+  /*
   it("read text file", async () => {
     const file = await fs.getFile("/test.txt");
     const rs = await file.createReadStream();

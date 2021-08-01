@@ -2,7 +2,7 @@ const path = require("path");
 const chromeDataDir = path.resolve(__dirname, ".chrome-karma");
 
 const rimraf = require("rimraf");
-rimraf(chromeDataDir, () => {});
+rimraf.sync(chromeDataDir);
 
 module.exports = function (config) {
   config.set({
@@ -34,6 +34,8 @@ module.exports = function (config) {
     // Here I'm including all of the the Jest tests which are all under the __tests__ directory.
     // You may need to tweak this patter to find your test files/
     files: [{ pattern: "dist/*.js", watched: false }],
-    // singleRun: true,
+
+    client: { jasmine: { random: false } },
+    singleRun: true,
   });
 };
