@@ -14,7 +14,12 @@ describe("basic", () => {
 
   it("add empty file", async () => {
     const file = await fs.getFile("/empty.txt");
-    expectAsync(file.stat()).toBeRejected();
+    try {
+      await file.stat();
+      fail("Found file: " + file.path);
+    } catch (e) {
+      expect(e).toBeInstanceOf(NotFoundError);
+    }
     const buffer = toArrayBuffer("");
     const ws = await file.createWriteStream();
     await ws.write(buffer);
@@ -110,7 +115,6 @@ describe("basic", () => {
     expect(0 <= dirs.indexOf("/folder")).toBe(true);
   });
 
-  /*
   it("create file in dir", async () => {
     const file = await fs.getFile("/folder/sample.txt");
     try {
@@ -144,7 +148,9 @@ describe("basic", () => {
   it("copy directory", async () => {
     const from = await fs.getDirectory("/folder");
     const to = await fs.getDirectory("/folder2");
+    console.log(1);
     const errors = await from.copy(to, { force: false, recursive: true });
+    console.log(2);
     expect(errors.length).toBe(0);
     const stats = await to.stat();
     expect(stats.size).toBeUndefined();
@@ -155,6 +161,7 @@ describe("basic", () => {
     expect(0 <= toList.indexOf("/folder2/sample.txt")).toBe(true);
   });
 
+  /*
   it("move file", async () => {
     await fs.move("/folder2/sample.txt", "/folder2/sample2.txt");
     const list = await fs.list("/folder2");
