@@ -39,7 +39,6 @@ describe("basic", () => {
     expect(stats.size).toBe(4);
   });
 
-  /*
   it("read text file", async () => {
     const file = await fs.getFile("/test.txt");
     const rs = await file.createReadStream();
@@ -85,6 +84,7 @@ describe("basic", () => {
     await rs.close();
   });
 
+  /*
   it("mkdir test", async () => {
     const dir = await fs.getDirectory("/");
     let dirs = await dir.readdir();
