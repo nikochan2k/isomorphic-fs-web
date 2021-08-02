@@ -12,7 +12,7 @@ export class WebDirectory extends AbstractDirectory {
       const fullPath = util.joinPaths(this.fs.repository, this.path);
       fs.root.getDirectory(
         fullPath,
-        { create: true },
+        { create: false },
         (directory) => {
           const reader = directory.createReader();
           reader.readEntries(

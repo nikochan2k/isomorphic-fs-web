@@ -6,6 +6,14 @@ const { toArrayBuffer, toString } = util;
 const fs = new WebFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
 
 describe("basic", () => {
+  beforeAll(async () => {
+    const dir = await fs.getDirectory("/");
+    const paths = await dir.readdir({ ignoreHook: true });
+    for (const path of paths) {
+      await fs.rm(path, { recursive: true, force: true, ignoreHook: true });
+    }
+  });
+
   it("rootdir", async () => {
     const dir = await fs.getDirectory("/");
     const paths = await dir.readdir();
@@ -159,7 +167,6 @@ describe("basic", () => {
     expect(0 <= toList.indexOf("/folder2/sample.txt")).toBe(true);
   });
 
-  /*
   it("move file", async () => {
     await fs.move("/folder2/sample.txt", "/folder2/sample2.txt");
     const list = await fs.list("/folder2");
@@ -169,7 +176,6 @@ describe("basic", () => {
 
   it("move directory", async () => {
     const errors = await fs.move("/folder2", "/folder3");
-    console.log(errors);
     expect(errors.length).toBe(0);
     const root = await fs.getDirectory("/");
     const list = await root.ls();
@@ -179,5 +185,4 @@ describe("basic", () => {
     const folder3List = await folder3.ls();
     expect(0 <= folder3List.indexOf("/folder3/sample2.txt")).toBe(true);
   });
-  */
 });

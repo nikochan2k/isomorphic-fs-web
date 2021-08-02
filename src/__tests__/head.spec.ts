@@ -3,7 +3,15 @@ import { WebFileSystem } from "../fs/WebFileSystem";
 
 const fs = new WebFileSystem("/isomorphic-fs-test", 50 * 1024 * 1024);
 
-describe("basic", () => {
+describe("head", () => {
+  beforeAll(async () => {
+    const dir = await fs.getDirectory("/");
+    const paths = await dir.readdir({ ignoreHook: true });
+    for (const path of paths) {
+      await fs.rm(path, { recursive: true, force: true, ignoreHook: true });
+    }
+  });
+
   it("rootdir", async () => {
     const stat = await fs.head("/");
     expect(stat.size).toBeUndefined();
@@ -18,9 +26,9 @@ describe("basic", () => {
     }
   });
 
-  it("file", async () => {
-    await fs.writeAll("/file", Buffer.alloc(1, 0).buffer);
-    const stat = await fs.stat("/file");
+  it("file_head", async () => {
+    await fs.writeAll("/file_head", new ArrayBuffer(1));
+    const stat = await fs.stat("/file_head");
     expect(stat.size).toBe(1);
   });
 });
