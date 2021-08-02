@@ -148,9 +148,7 @@ describe("basic", () => {
   it("copy directory", async () => {
     const from = await fs.getDirectory("/folder");
     const to = await fs.getDirectory("/folder2");
-    console.log(1);
     const errors = await from.copy(to, { force: false, recursive: true });
-    console.log(2);
     expect(errors.length).toBe(0);
     const stats = await to.stat();
     expect(stats.size).toBeUndefined();

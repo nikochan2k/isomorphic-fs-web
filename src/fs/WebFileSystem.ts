@@ -171,11 +171,14 @@ export class WebFileSystem extends AbstractFileSystem {
     const entry = await this.getEntry(path);
     return new Promise<Stats>((resolve, reject) => {
       entry.getMetadata(
-        (metadata) =>
-          resolve({
-            modified: metadata.modificationTime.getTime(),
-            size: metadata.size,
-          }),
+        (metadata) => {
+          const modified = metadata.modificationTime.getTime();
+          if (entry.isFile) {
+            resolve({ modified, size: metadata.size });
+          } else {
+            resolve({ modified });
+          }
+        },
         (err) => reject(convertError(this.repository, path, err))
       );
     });

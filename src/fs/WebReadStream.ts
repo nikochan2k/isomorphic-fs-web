@@ -12,14 +12,16 @@ export class WebReadStream extends AbstractReadStream {
     this._dispose();
   }
 
-  public async _read(size?: number): Promise<ArrayBuffer> {
+  public async _read(size?: number): Promise<ArrayBuffer | null> {
     const file = await this._open();
-    let blob: Blob;
-    if (size == null) {
-      blob = file.slice(this.position, this.position + this.bufferSize);
-    } else {
-      blob = file.slice(this.position, this.position + size);
+    if (file.size <= this.position) {
+      return null;
     }
+    let end = this.position + (size == null ? this.bufferSize : size);
+    if (file.size < end) {
+      end = file.size;
+    }
+    const blob = file.slice(this.position, end);
     const buffer = await toArrayBuffer(blob);
     return buffer;
   }
